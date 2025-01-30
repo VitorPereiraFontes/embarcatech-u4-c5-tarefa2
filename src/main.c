@@ -14,6 +14,9 @@
 const uint32_t GPIOS_MASK = (1 << RED_LED_PIN) | (1 << GREEN_LED_PIN) | ( 1 << BLUE_LED_PIN) | (1 << A_BUTTON_PIN);
 const uint32_t GPIOS_VALUES_MASK = (1 << RED_LED_PIN) | (1 << GREEN_LED_PIN) | ( 1 << BLUE_LED_PIN) | (0 << A_BUTTON_PIN); // 1 - Saída | 0 - Entrada
 
+// Inicializa uma variável de controle que armazena o estado do event de callback para o alarme
+bool event_triggered = false;
+
 int64_t alarm_callback(alarm_id_t id, void *user_data) {
     // Put your timeout handler code in here
     return 0;
@@ -32,7 +35,17 @@ int main(){
     // For more examples of timer use see https://github.com/raspberrypi/pico-examples/tree/master/timer
 
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        // Verifica se o botão foi pressionado e se o evento não foi disparado ainda
+        if (gpio_get(A_BUTTON_PIN) == 0 && !event_triggered){
+            sleep_ms(50); // Delay de 50 ms para prevenir debouncing do botão
+
+            // Verifica se o botão ainda está pressionado
+            if (gpio_get(A_BUTTON_PIN) == 0){
+
+                printf("Pressionado!\n");
+            }
+        }
+
+        sleep_ms(80); // Delay para não sobrecarregar o microprocessador
     }
 }
