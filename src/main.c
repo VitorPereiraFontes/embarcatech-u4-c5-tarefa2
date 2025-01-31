@@ -36,6 +36,68 @@ alarm_event_data_t initial_event_data = {
     .counter = 0
 };
 
+// Função de callback do temporizador.
+int64_t alarm_callback(alarm_id_t id, void *event_data_uncasted) {    
+    alarm_event_data_t *event_data = (alarm_event_data_t *)event_data_uncasted;  // Cast para o tipo correto
+
+    uint next_alarm_id; // Variável para armazenar o id do próximo alarme
+
+    printf("%d  -  Evento disparado! Alterando o estado do LED...\n",event_data->counter);
+
+    // Altera o estado dos LED's com os dados passados por referência
+    gpio_put_masked(gpio_leds_mask,event_data->led_gpios_values_mask);
+
+    switch (event_data->counter){
+        case 0:
+            // Atualiza o estado dos LED's para a proxima alteração
+            event_data->led_gpios_values_mask = (1 << RED_LED_PIN) | (1 << GREEN_LED_PIN) | ( 0 << BLUE_LED_PIN); // Apaga o LED azul
+            event_data->counter++; // Incrementa o contador de alterações do LED
+
+            // Inicializando o temporizador de disparo único para que a proxima mudança no led seja realizada
+            next_alarm_id = add_alarm_in_ms(led_change_interval, alarm_callback, event_data, false);
+
+            if(next_alarm_id < 0){
+                printf("Houve um erro ao tentar agendar o alarme, tente novamente!\n");
+            }
+        break;
+
+        case 1:
+            // Atualiza o estado dos LED's para a proxima alteração
+            event_data->led_gpios_values_mask = (0 << RED_LED_PIN) | (1 << GREEN_LED_PIN) | ( 0 << BLUE_LED_PIN); // Apaga os LED's azul e vermelho
+            event_data->counter++; // Incrementa o contador de alterações do LED
+
+            // Inicializando o temporizador de disparo único para que a proxima mudança no led seja realizada
+            next_alarm_id = add_alarm_in_ms(led_change_interval, alarm_callback, event_data, false);
+
+            if(next_alarm_id < 0){
+                printf("Houve um erro ao tentar agendar o alarme, tente novamente!\n");
+            }
+        break;
+    
+        case 2:
+            event_data->led_gpios_values_mask = (0 << RED_LED_PIN) | (0 << GREEN_LED_PIN) | (0 << BLUE_LED_PIN); // Apaga todos os LED's
+            event_data->counter++; //Reseta o contador de mudanças do LED
+
+            // Inicializando o temporizador de disparo único para que a proxima mudança no led seja realizada
+            next_alarm_id = add_alarm_in_ms(led_change_interval, alarm_callback, event_data, false); // Retorna para o estado inicial
+
+            if(next_alarm_id < 0){
+                printf("Houve um erro ao tentar agendar o alarme, tente novamente!\n");
+            }
+        break;
+
+        default:
+            event_data->led_gpios_values_mask = (1 << RED_LED_PIN) | (1 << GREEN_LED_PIN) | ( 1 << BLUE_LED_PIN); // Liga todos os LED's
+            event_data->counter = 0; // Reseta o contador
+            event_running = false; // Libera o envento ser disparado novamente pelo botão
+
+            printf("Fim do evento! Para dispará-lo novamente, pressione o botão.\n");
+        break;
+    }
+
+    return 0; // Retorna 0 para indicar que o temporizador não deverá ser re-agendado
+}
+
 int main(){
     stdio_init_all(); // Inicializa a comunicação serial
 
@@ -54,6 +116,13 @@ int main(){
                 event_running = true ; // Altera o valor da variável de controle, inibindo o botão de ativar o evento
 
                 printf("Pressionado!Agendando o temporizador para %d milissegundos no futuro...\n",alarm_interval);
+
+                // Inicializando o temporizador de disparo único
+                uint alarm_id = add_alarm_in_ms(alarm_interval, alarm_callback, &initial_event_data, false);
+
+                if(alarm_id < 0){
+                    printf("Houve um erro ao tentar agendar o alarme, tente novamente!\n");
+                }
             }
         }
 
