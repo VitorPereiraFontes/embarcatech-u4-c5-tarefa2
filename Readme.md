@@ -16,7 +16,11 @@ O presente projeto deverá atender aos seguintes requerimentos:
 
 ## Demonstração
 
-Seguem os vídeos de demonstração do projeto, tanto no simulador Wokwi quanto na placa BitDogLab.
+Seguem os vídeos de demonstração do projeto, tanto no simulador Wokwi quanto na placa BitDogLab:
+
+https://github.com/user-attachments/assets/0e13fe09-537f-4d26-ba63-c0f46e02b6c0
+
+https://github.com/user-attachments/assets/7596d38d-0a17-41d5-a9e5-893b907e6cf5
 
 ## Instruções
 
